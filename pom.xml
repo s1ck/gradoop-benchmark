@@ -11,7 +11,7 @@
     <properties>
         <dep.ldbc.version>0.2-SNAPSHOT</dep.ldbc.version>
 
-        <plugin.maven_assembly.version>2.4</plugin.maven_assembly.version>
+        <dep.shade.plugin>2.4.2</dep.shade.plugin>
     </properties>
 
     <repositories>
@@ -38,6 +38,31 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${dep.shade.plugin}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>org.s1ck:ldbc-flink-import</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
