@@ -9,9 +9,14 @@
     <version>0.1-SNAPSHOT</version>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.maven.version>3.0.0</project.maven.version>
+        <project.build.targetJdk>1.7</project.build.targetJdk>
+
         <dep.ldbc.version>0.2-SNAPSHOT</dep.ldbc.version>
 
-        <dep.shade.plugin>2.4.2</dep.shade.plugin>
+        <plugin.maven-compiler.version>3.0</plugin.maven-compiler.version>
+        <plugin.maven-shade.version>2.4.2</plugin.maven-shade.version>
     </properties>
 
     <repositories>
@@ -43,8 +48,17 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${plugin.maven-compiler.version}</version>
+                <configuration>
+                    <source>${project.build.targetJdk}</source>
+                    <target>${project.build.targetJdk}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>${dep.shade.plugin}</version>
+                <version>${plugin.maven-shade.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
