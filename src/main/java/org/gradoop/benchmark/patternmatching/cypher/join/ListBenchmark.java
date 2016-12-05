@@ -31,6 +31,7 @@ import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.gradoop.common.model.impl.id.GradoopId;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,13 +50,16 @@ public class ListBenchmark {
 
     @Override
     public List<K> join(List<K> first, List<K> second) throws Exception {
+      List<K> result = new ArrayList<K>();
+      result.addAll(first);
+
       // take all except join fields from the second embedding
       for (int j = 0; j < second.size(); j++) {
         if (!joinColumnsRight.contains(j)) {
-          first.add(second.get(j));
+          result.add(second.get(j));
         }
       }
-      return first;
+      return result;
     }
   }
 
@@ -79,7 +83,7 @@ public class ListBenchmark {
   /**
    * Run with
    *
-   * run -c org.gradoop.examples.FlinkGenericTupleTest gradoop.jar [long|gradoopid] inputPath q[0-n]
+   * run -c org.gradoop.examples.FlinkGenericTupleTest gradoop.jar [long|gradoopid] inputPath q[0-n] ObjectReuse{true|false}
    *
    * @param args arguments
    * @throws Exception
@@ -88,11 +92,18 @@ public class ListBenchmark {
     String idType = args[0].toLowerCase();
     String inputPath = args[1];
     String query = args[2];
+    boolean objectReuse = Boolean.parseBoolean(args[3]);
+
+    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+
+    if(objectReuse) {
+      env.getConfig().enableObjectReuse();
+    }
 
     if (idType.equals("long")) {
-      performQuery(readBasicTypeEdges(inputPath, Long.class), query, BasicTypeInfo.LONG_TYPE_INFO);
+      performQuery(readBasicTypeEdges(env, inputPath, Long.class), query, BasicTypeInfo.LONG_TYPE_INFO);
     } else if (idType.equals("gradoopid")) {
-      performQuery(readGradoopIdEdges(inputPath), query, TypeExtractor.getForClass(GradoopId.class));
+      performQuery(readGradoopIdEdges(env, inputPath), query, TypeExtractor.getForClass(GradoopId.class));
     }
   }
 
@@ -113,9 +124,7 @@ public class ListBenchmark {
     }
   }
 
-  private static <K> DataSet<List<K>> readBasicTypeEdges(String inputPath, Class<K> keyClazz) throws Exception {
-    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-
+  private static <K> DataSet<List<K>> readBasicTypeEdges(ExecutionEnvironment env, String inputPath, Class<K> keyClazz) throws Exception {
     return env.readCsvFile(inputPath)
       .ignoreComments("#")
       .fieldDelimiter("\t")
@@ -125,9 +134,7 @@ public class ListBenchmark {
       ).returns(new TypeHint<List<K>>(){}.getTypeInfo());
   }
 
-  private static DataSet<List<GradoopId>> readGradoopIdEdges(String inputPath) {
-    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-
+  private static DataSet<List<GradoopId>> readGradoopIdEdges(ExecutionEnvironment env, String inputPath) {
     TypeInformation<GradoopId> idType = TypeExtractor.getForClass(GradoopId.class);
     TypeInformation<Tuple3<GradoopId, GradoopId, GradoopId>> tupleType = new TupleTypeInfo<>(idType, idType, idType);
 
