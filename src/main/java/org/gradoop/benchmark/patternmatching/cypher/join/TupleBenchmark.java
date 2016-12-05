@@ -101,7 +101,7 @@ public class TupleBenchmark {
   /**
    * Run with
    *
-   * run -c org.gradoop.examples.FlinkGenericTupleTest gradoop.jar [long|gradoopid] inputPath q[0-n]
+   * run -c org.gradoop.examples.FlinkGenericTupleTest gradoop.jar [long|gradoopid] inputPath q[0-n] ObjectReuse{true|false}
    *
    * @param args arguments
    * @throws Exception
@@ -110,11 +110,18 @@ public class TupleBenchmark {
     String idType = args[0].toLowerCase();
     String inputPath = args[1];
     String query = args[2];
+    boolean objectReuse = Boolean.parseBoolean(args[3]);
+
+    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+
+    if(objectReuse) {
+      env.getConfig().enableObjectReuse();
+    }
 
     if (idType.equals("long")) {
-      performQuery(readBasicTypeEdges(inputPath, Long.class), query, BasicTypeInfo.LONG_TYPE_INFO);
+      performQuery(readBasicTypeEdges(inputPath, Long.class, env), query, BasicTypeInfo.LONG_TYPE_INFO);
     } else if (idType.equals("gradoopid")) {
-      performQuery(readGradoopIdEdges(inputPath), query, TypeExtractor.getForClass(GradoopId.class));
+      performQuery(readGradoopIdEdges(inputPath, env), query, TypeExtractor.getForClass(GradoopId.class));
     }
   }
 
@@ -135,18 +142,14 @@ public class TupleBenchmark {
     }
   }
 
-  private static <K> DataSet<Tuple3<K, K, K>> readBasicTypeEdges(String inputPath, Class<K> keyClazz) throws Exception {
-    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-
+  private static <K> DataSet<Tuple3<K, K, K>> readBasicTypeEdges(String inputPath, Class<K> keyClazz, ExecutionEnvironment env) throws Exception {
     return env.readCsvFile(inputPath)
       .ignoreComments("#")
       .fieldDelimiter("\t")
       .types(keyClazz, keyClazz, keyClazz);
   }
 
-  private static DataSet<Tuple3<GradoopId, GradoopId, GradoopId>> readGradoopIdEdges(String inputPath) {
-    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-
+  private static DataSet<Tuple3<GradoopId, GradoopId, GradoopId>> readGradoopIdEdges(String inputPath, ExecutionEnvironment env) {
     TypeInformation<GradoopId> idType = TypeExtractor.getForClass(GradoopId.class);
     TypeInformation<Tuple3<GradoopId, GradoopId, GradoopId>> tupleType = new TupleTypeInfo<>(idType, idType, idType);
 
