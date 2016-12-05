@@ -11,13 +11,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.maven.version>3.0.0</project.maven.version>
-        <project.build.targetJdk>1.7</project.build.targetJdk>
+        <project.build.targetJdk>1.8</project.build.targetJdk>
 
-        <dep.ldbc.version>0.2-SNAPSHOT</dep.ldbc.version>
-        <dep.gradoop.version>0.2-SNAPSHOT</dep.gradoop.version>
+        <dep.gradoop.version>0.3.0-SNAPSHOT</dep.gradoop.version>
+        <dep.flink.version>1.1.2</dep.flink.version>
 
-        <plugin.maven-compiler.version>3.0</plugin.maven-compiler.version>
-        <plugin.maven-shade.version>2.4.2</plugin.maven-shade.version>
+        <plugin.maven-compiler.version>3.5.1</plugin.maven-compiler.version>
+        <plugin.maven-shade.version>2.4.3</plugin.maven-shade.version>
     </properties>
 
     <repositories>
@@ -67,12 +67,19 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <minimizeJar>true</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>org.s1ck:ldbc-flink-import</include>
-                                    <include>org.s1ck:gdl</include>
-                                    <include>org.gradoop:*</include>
+                                    <!-- libs that are not provided by flink binary -->
                                     <include>org.apache.hbase:hbase-common</include>
+                                    <include>org.apache.flink:flink-gelly_2.11</include>
+                                    <include>org.gradoop:*</include>
+                                    <include>org.s1ck:gdl</include>
+                                    <include>org.codehaus.jettison:jettison</include>
+                                    <include>com.google.guava:guava</include>
+                                    <include>org.antlr:antlr4-runtime</include>
+                                    <include>org.mongodb:mongo-java-driver</include>
+                                    <include>commons-cli:*</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -84,14 +91,22 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.s1ck</groupId>
-            <artifactId>ldbc-flink-import</artifactId>
-            <version>${dep.ldbc.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.gradoop</groupId>
             <artifactId>gradoop-flink</artifactId>
             <version>${dep.gradoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-java</artifactId>
+            <version>${dep.flink.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-clients_2.11</artifactId>
+            <version>${dep.flink.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
