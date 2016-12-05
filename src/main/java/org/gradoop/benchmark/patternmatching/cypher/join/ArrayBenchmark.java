@@ -76,7 +76,7 @@ public class ArrayBenchmark {
     public String getKey(K[] value) throws Exception {
       String res = "";
       for(int i : columns) {
-        res += value[i].toString();
+        res += "|" + value[i].toString();
       }
       return res;
     }

@@ -71,7 +71,7 @@ public class RecordBenchmark {
     public String getKey(Record value) throws Exception {
       String res = "";
       for(int i : columns) {
-        res += value.getField(i, LongValue.class).toString();
+        res += "|" + value.getField(i, LongValue.class).toString();
       }
       return res;
     }

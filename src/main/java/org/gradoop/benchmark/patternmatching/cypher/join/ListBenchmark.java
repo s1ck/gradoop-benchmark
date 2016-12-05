@@ -74,7 +74,7 @@ public class ListBenchmark {
     public String getKey(List<K> value) throws Exception {
       String res = "";
       for(int i : columns) {
-        res += value.get(i).toString();
+        res += "|" + value.get(i).toString();
       }
       return res;
     }
