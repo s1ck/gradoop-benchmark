@@ -34,7 +34,7 @@ import org.apache.flink.api.java.tuple.Tuple7;
 import org.apache.flink.api.java.tuple.Tuple8;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
-import org.gradoop.common.model.impl.id.GradoopId;
+import org.gradoop.benchmark.gradoopid.GradoopIdTuple4;
 
 import java.util.Arrays;
 import java.util.List;
@@ -121,7 +121,7 @@ public class TupleBenchmark {
     if (idType.equals("long")) {
       performQuery(readBasicTypeEdges(inputPath, Long.class, env), query, BasicTypeInfo.LONG_TYPE_INFO);
     } else if (idType.equals("gradoopid")) {
-      performQuery(readGradoopIdEdges(inputPath, env), query, TypeExtractor.getForClass(GradoopId.class));
+      performQuery(readGradoopIdTupleEdges(inputPath, env), query, TupleTypeInfo.of(GradoopIdTuple4.class));
     }
   }
 
@@ -149,16 +149,21 @@ public class TupleBenchmark {
       .types(keyClazz, keyClazz, keyClazz);
   }
 
-  private static DataSet<Tuple3<GradoopId, GradoopId, GradoopId>> readGradoopIdEdges(String inputPath, ExecutionEnvironment env) {
-    TypeInformation<GradoopId> idType = TypeExtractor.getForClass(GradoopId.class);
-    TypeInformation<Tuple3<GradoopId, GradoopId, GradoopId>> tupleType = new TupleTypeInfo<>(idType, idType, idType);
+  private static DataSet<Tuple3<GradoopIdTuple4, GradoopIdTuple4, GradoopIdTuple4>> readGradoopIdTupleEdges(String inputPath, ExecutionEnvironment env) {
 
     return env.readTextFile(inputPath)
-      .map((MapFunction<String, Tuple3<GradoopId, GradoopId, GradoopId>>) line -> {
-        String[] tokens = line.split("\t");
-        return Tuple3.of(GradoopId.fromString(tokens[0]), GradoopId.fromString(tokens[1]), GradoopId.fromString(tokens[2]));
-      })
-      .returns(tupleType);
+      .map(new MapFunction<String, Tuple3<GradoopIdTuple4, GradoopIdTuple4, GradoopIdTuple4>>() {
+        @Override
+        public Tuple3<GradoopIdTuple4, GradoopIdTuple4, GradoopIdTuple4> map(String line) throws
+          Exception {
+          String[] tokens = line.split("\t");
+          return Tuple3
+            .of(GradoopIdTuple4.fromString(tokens[0]), GradoopIdTuple4.fromString(tokens[1]),
+              GradoopIdTuple4
+
+                .fromString(tokens[2]));
+        }
+      });
   }
 
   //------------------------------------------------------------------------------------------------
