@@ -17,6 +17,7 @@
 
 package org.gradoop.benchmark.patternmatching.cypher.join;
 
+import com.google.common.primitives.Bytes;
 import org.apache.flink.api.common.functions.JoinFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
@@ -42,17 +43,21 @@ public class EmbeddingRecordBenchmark {
 
     @Override
     public EmbeddingRecord join(EmbeddingRecord first, EmbeddingRecord second) throws Exception {
-      EmbeddingRecord result = new EmbeddingRecord(first.size() + second.size() - joinColumnsRight.size());
+      byte[][] tmp = new byte[first.size()+joinColumnsRight.size()][];
 
-      first.copyTo(result);
+      int i;
+      for(i = 0; i < first.size(); i++) {
+        tmp[i] = first.getRawEntry(i);
+      }
 
-      int i = first.size();
+      i++;
       for(int j = 0; j < second.size(); j++) {
         if (!joinColumnsRight.contains(j)) {
-          result.copyFrom(second,j, i++);
+          tmp[i+j] = second.getRawEntry(j);
         }
       }
-      return result;
+
+      return new EmbeddingRecord(Bytes.concat(tmp), tmp.length);
     }
   }
 
@@ -67,7 +72,7 @@ public class EmbeddingRecordBenchmark {
     public String getKey(EmbeddingRecord value) throws Exception {
       String res = "";
       for(int i : columns) {
-        res += "|" + value.get(i).toString();
+        res += "|" + Arrays.toString(value.getRawId(i));
       }
       return res;
     }
@@ -119,10 +124,10 @@ public class EmbeddingRecordBenchmark {
       .types(Long.class, Long.class, Long.class)
       .map(
         (MapFunction<Tuple3<Long, Long, Long>,EmbeddingRecord>) t -> {
-          EmbeddingRecord edge = new EmbeddingRecord(3);
-          edge.set(0,t.f0);
-          edge.set(1,t.f1);
-          edge.set(2,t.f2);
+          EmbeddingRecord edge = new EmbeddingRecord();
+          edge.add(t.f0);
+          edge.add(t.f1);
+          edge.add(t.f2);
           return edge;
         }
       ).returns(EmbeddingRecord.class);
