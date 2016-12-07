@@ -132,7 +132,7 @@ public class EmbeddingEntryArrayBenchmark {
         @Override
         public EmbeddingEntry[] map(Tuple3<Long, Long, Long> t) throws Exception {
           return new EmbeddingEntry[] {
-            new IdEntry(t.f1), new IdEntry(t.f0), new IdEntry(t.f2)
+            new IdEntry(t.f0), new IdEntry(t.f1), new IdEntry(t.f2)
           };  
         }
       });
