@@ -53,7 +53,6 @@ public class GradoopIdTuple2 extends Tuple2<Integer, Long> {
     this.f1 = ((long) objectId.getMachineIdentifier()) << 40;
     this.f1 += ((long) objectId.getProcessIdentifier()) << 24;
     this.f1 += (long) objectId.getCounter();
-    System.out.println(objectId.getCounter());
   }
 
   /**
