@@ -197,18 +197,6 @@ public class EmbeddingRecord implements Value, CopyableValue<EmbeddingRecord> {
     return res;
   }
 
-  public long serialize(DataOutputView target) throws IOException {
-    target.write(Ints.toByteArray(this.size),0, Integer.BYTES);
-    target.write(Ints.toByteArray(this.data.length),0, Integer.BYTES);
-    target.write(this.data, 0, this.data.length);
-
-    return 2*Integer.BYTES + this.data.length;
-  }
-
-  public void deserialize(DataInputView source) throws IOException {
-    read(source);
-  }
-
   @Override
   public void copy(DataInputView source, DataOutputView target) throws IOException {
     byte[] integer = new byte[4];
@@ -224,7 +212,9 @@ public class EmbeddingRecord implements Value, CopyableValue<EmbeddingRecord> {
 
   @Override
   public void write(DataOutputView out) throws IOException {
-    serialize(out);
+    out.write(Ints.toByteArray(this.size));
+    out.write(Ints.toByteArray(this.data.length));
+    out.write(this.data, 0, this.data.length);
   }
 
   @Override
@@ -232,8 +222,23 @@ public class EmbeddingRecord implements Value, CopyableValue<EmbeddingRecord> {
     this.size = in.readInt();
 
     final int length = in.readInt();
-    byte[] buffer = new byte[length];
-    in.readFully(data, 0, length);
-    this.data  = buffer;
+
+    byte[] buffer = this.data;
+    if (buffer == null || buffer.length < length) {
+      buffer = new byte[length];
+      this.data =  buffer;
+    }
+
+    in.readFully(buffer);
+  }
+
+  @Override
+  public String toString() {
+    String res = "[ ";
+    for (int i=0; i<this.size(); i++) {
+      res += getId(i) + ", ";
+    }
+    res += "]";
+    return res;
   }
 }

@@ -43,17 +43,16 @@ public class EmbeddingRecordBenchmark {
 
     @Override
     public EmbeddingRecord join(EmbeddingRecord first, EmbeddingRecord second) throws Exception {
-      byte[][] tmp = new byte[first.size()+joinColumnsRight.size()][];
+      byte[][] tmp = new byte[first.size() + second.size() - joinColumnsRight.size()][];
 
       int i;
       for(i = 0; i < first.size(); i++) {
         tmp[i] = first.getRawEntry(i);
       }
 
-      i++;
       for(int j = 0; j < second.size(); j++) {
         if (!joinColumnsRight.contains(j)) {
-          tmp[i+j] = second.getRawEntry(j);
+          tmp[i++] = second.getRawEntry(j);
         }
       }
 
