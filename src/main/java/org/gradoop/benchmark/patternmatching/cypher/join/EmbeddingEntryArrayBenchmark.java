@@ -73,7 +73,7 @@ public class EmbeddingEntryArrayBenchmark {
     public String getKey(EmbeddingEntry[] value) throws Exception {
       String res = "";
       for(int i : columns) {
-        res += "|" + Arrays.toString(value[i].getId());
+        res += "|" + value[i].getId();
       }
       return res;
     }
@@ -101,9 +101,10 @@ public class EmbeddingEntryArrayBenchmark {
 
     if (idType.equals("long")) {
       performQuery(readLongTypeEdges(env, inputPath), query);
-    } else if (idType.equals("gradoopid")) {
-      performQuery(readGradoopIdEdges(env, inputPath), query);
     }
+    //else if (idType.equals("gradoopid")) {
+    //  performQuery(readGradoopIdEdges(env, inputPath), query);
+    //}
   }
 
   //------------------------------------------------------------------------------------------------
@@ -138,18 +139,18 @@ public class EmbeddingEntryArrayBenchmark {
       });
   }
 
-  private static DataSet<EmbeddingEntry[]> readGradoopIdEdges(ExecutionEnvironment env,
-    String inputPath) {
-    return env.readTextFile(inputPath)
-      .map((MapFunction<String, EmbeddingEntry[]>) line -> {
-        String[] tokens = line.split("\t");
-          return new EmbeddingEntry[] {
-            new IdEntry(GradoopId.fromString(tokens[0])),
-            new IdEntry(GradoopId.fromString(tokens[1])),
-            new IdEntry(GradoopId.fromString(tokens[2]))
-          };
-      }).returns(new TypeHint<EmbeddingEntry[]>(){}.getTypeInfo());
-  }
+  //private static DataSet<EmbeddingEntry[]> readGradoopIdEdges(ExecutionEnvironment env,
+  //  String inputPath) {
+  //  return env.readTextFile(inputPath)
+  //    .map((MapFunction<String, EmbeddingEntry[]>) line -> {
+  //      String[] tokens = line.split("\t");
+  //        return new EmbeddingEntry[] {
+  //          new IdEntry(GradoopId.fromString(tokens[0])),
+  //          new IdEntry(GradoopId.fromString(tokens[1])),
+  //          new IdEntry(GradoopId.fromString(tokens[2]))
+  //        };
+  //    }).returns(new TypeHint<EmbeddingEntry[]>(){}.getTypeInfo());
+  //}
 
   //------------------------------------------------------------------------------------------------
   // Queries

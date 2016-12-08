@@ -1,25 +1,21 @@
 package org.gradoop.benchmark.patternmatching.cypher.join.embeddings;
 
-import com.google.common.primitives.Longs;
-import org.gradoop.common.model.impl.id.GradoopId;
-
 public class IdEntry implements EmbeddingEntry {
-  public final byte[] id;
+  private long id;
 
-  public IdEntry(byte[] id) {
+  public IdEntry(Long id) {
     this.id = id;
   }
 
-  public IdEntry(GradoopId id) {
-    this.id = id.getRawBytes();
-  }
-
-  public IdEntry(Long id) {
-    this.id = Longs.toByteArray(id);
+  public IdEntry() {
   }
 
   @Override
-  public byte[] getId() {
+  public long getId() {
     return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
   }
 }
