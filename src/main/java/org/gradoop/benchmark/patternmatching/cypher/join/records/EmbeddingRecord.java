@@ -1,4 +1,4 @@
-package org.gradoop.benchmark.patternmatching.cypher.join;
+package org.gradoop.benchmark.patternmatching.cypher.join.records;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -9,14 +9,15 @@ import org.apache.flink.types.CopyableValue;
 import org.apache.flink.types.Value;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 @java.lang.SuppressWarnings("ALL")
-public class EmbeddingRecord implements Value, CopyableValue<EmbeddingRecord> {
+public class EmbeddingRecord implements Value, CopyableValue<EmbeddingRecord>, Iterable<byte[]> {
   public static final transient byte ID_ENTRY_TYPE = 0x00;
   public static final transient byte PROJECTION_ENTRY_TYPE = 0x01;
   public static final transient byte LIST_ENTRY_TYPE = 0x02;
 
-  private byte[] data;
+  public byte[] data;
   private int size;
 
   public EmbeddingRecord() {
@@ -39,41 +40,6 @@ public class EmbeddingRecord implements Value, CopyableValue<EmbeddingRecord> {
     size++;
   }
 
-  //public void add(long id, List<PropertyValue> properties) {
-  //  int size = 13 + properties.stream().mapToInt(PropertyValue::getByteSize).sum() + properties.size() * 4;
-  //  byte[] entry = new byte[size];
-  //
-  //  System.arraycopy(Ints.toByteArray(size),0,entry,0, 4);
-  //  entry[4] = PROJECTION_ENTRY_TYPE;
-  //  System.arraycopy(Longs.toByteArray(id),0,entry,5,8);
-  //
-  //  int offset = 13;
-  //  for (PropertyValue property : properties) {
-  //    System.arraycopy(Ints.toByteArray(property.getByteSize()), 0, entry, offset, 4);
-  //    System.arraycopy(property.getRawBytes(), 0, entry, offset+4, property.getByteSize());
-  //    offset += (property.getByteSize() + 4);
-  //  }
-  //
-  //  this.data = org.apache.commons.lang.ArrayUtils.addAll(data, entry);
-  //  this.size++;
-  //}
-
-  public void add(long[] ids) {
-    int size = 5+8*ids.length;
-    byte[] entry = new byte[size];
-
-    System.arraycopy(Ints.toByteArray(size),0,entry,0, 4);
-    entry[4] = LIST_ENTRY_TYPE;
-
-    int offset = 5;
-    for(long id : ids) {
-      System.arraycopy(Longs.toByteArray(id), 0, entry, offset, 8);
-      offset += 8;
-    }
-
-    this.data = org.apache.commons.lang.ArrayUtils.addAll(data, entry);
-    this.size++;
-  }
 
   public int size() {
     return this.size;
@@ -100,57 +66,6 @@ public class EmbeddingRecord implements Value, CopyableValue<EmbeddingRecord> {
     }
 
     return org.apache.commons.lang.ArrayUtils.subarray(data, offset+5, offset+13);
-  }
-
-  //public PropertyValue getProperty(int column, int propertyIndex) {
-  //  int offset = getOffset(column);
-  //
-  //  if(data[offset+4] != PROJECTION_ENTRY_TYPE) {
-  //    throw new UnsupportedOperationException("Can't return properties for non ProjectionEntry");
-  //  }
-  //
-  //  int end = offset + Ints.fromByteArray(
-  //    org.apache.commons.lang.ArrayUtils.subarray(data, offset, offset + 4));
-  //
-  //  offset += 13;
-  //  int i = 0;
-  //  while(i < propertyIndex && offset < end) {
-  //    offset += Ints.fromByteArray(
-  //      org.apache.commons.lang.ArrayUtils.subarray(data, offset, offset+4)) + 4;
-  //    i++;
-  //  }
-  //
-  //  if(offset < end) {
-  //    int propertySize = Ints.fromByteArray(
-  //      org.apache.commons.lang.ArrayUtils.subarray(data, offset, offset + 4));
-  //    return PropertyValue.fromRawBytes(
-  //        org.apache.commons.lang.ArrayUtils.subarray(data, offset + 4, offset + 4 + propertySize)
-  //    );
-  //  } else {
-  //    return PropertyValue.NULL_VALUE;
-  //  }
-  //}
-
-  public long[] getListEntry(int column) {
-    int offset = getOffset(column);
-    int count = (Ints.fromByteArray(
-      org.apache.commons.lang.ArrayUtils.subarray(data, offset, offset + 4)) - 5) / 8;
-
-    if(data[offset+4] != LIST_ENTRY_TYPE) {
-      throw new UnsupportedOperationException("Can't return ListEntry for non ListEntry");
-    }
-
-    offset += 5;
-
-    long[] ids = new long[count];
-
-    for(int i = 0; i < count; i++) {
-      ids[i] = Longs.fromByteArray(
-        org.apache.commons.lang.ArrayUtils.subarray(data,offset, offset + 8));
-      offset += 8;
-    }
-
-    return ids;
   }
 
   private int getOffset(int column) {
@@ -240,5 +155,32 @@ public class EmbeddingRecord implements Value, CopyableValue<EmbeddingRecord> {
     }
     res += "]";
     return res;
+  }
+
+  @Override
+  public Iterator<byte[]> iterator() {
+    Iterator<byte[]> it = new Iterator<byte[]>() {
+      private int currentOffset = 0;
+
+      @Override
+      public boolean hasNext() {
+        return currentOffset < data.length;
+      }
+
+      @Override
+      public byte[] next() {
+        int size = Ints.fromByteArray(ArrayUtils.subarray(data, currentOffset, currentOffset + 4));
+        byte[] res = ArrayUtils.subarray(data, currentOffset, currentOffset + size);
+        currentOffset += size;
+        return res;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException();
+      }
+
+    };
+    return it;
   }
 }

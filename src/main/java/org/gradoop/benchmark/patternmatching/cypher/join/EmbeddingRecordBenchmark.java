@@ -17,13 +17,13 @@
 
 package org.gradoop.benchmark.patternmatching.cypher.join;
 
-import com.google.common.primitives.Bytes;
 import org.apache.flink.api.common.functions.JoinFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.gradoop.benchmark.patternmatching.cypher.join.records.EmbeddingRecord;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,20 +43,11 @@ public class EmbeddingRecordBenchmark {
 
     @Override
     public EmbeddingRecord join(EmbeddingRecord first, EmbeddingRecord second) throws Exception {
-      byte[][] tmp = new byte[first.size() + second.size() - joinColumnsRight.size()][];
+      byte[] data = new byte[first.data.length + second.data.length];
+      System.arraycopy(first.data, 0, data, 0, first.data.length);
+      System.arraycopy(second.data, 0, data, first.data.length, second.data.length);
 
-      int i;
-      for(i = 0; i < first.size(); i++) {
-        tmp[i] = first.getRawEntry(i);
-      }
-
-      for(int j = 0; j < second.size(); j++) {
-        if (!joinColumnsRight.contains(j)) {
-          tmp[i++] = second.getRawEntry(j);
-        }
-      }
-
-      return new EmbeddingRecord(Bytes.concat(tmp), tmp.length);
+      return new EmbeddingRecord(data, first.size()+second.size());
     }
   }
 
@@ -71,7 +62,7 @@ public class EmbeddingRecordBenchmark {
     public String getKey(EmbeddingRecord value) throws Exception {
       String res = "";
       for(int i : columns) {
-        res += "|" + Arrays.toString(value.getRawId(i));
+        res += "|" + value.getId(i);
       }
       return res;
     }
