@@ -22,6 +22,14 @@ public class Embedding {
     return entries.get(column);
   }
 
+  public List<EmbeddingEntry> getEntries() {
+    return entries;
+  }
+
+  public void setEntries(List<EmbeddingEntry> entries) {
+    this.entries = entries;
+  }
+
   public void add(EmbeddingEntry entry) {
     entries.add(entry);
   }
