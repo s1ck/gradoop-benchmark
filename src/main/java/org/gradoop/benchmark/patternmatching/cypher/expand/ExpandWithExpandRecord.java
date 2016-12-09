@@ -21,12 +21,12 @@ public class ExpandWithExpandRecord {
   }
 
 
-  public void evaluate() throws Exception {
+  public DataSet<ExpandRecord> evaluate() {
     DataSet<ExpandRecord> initialWorkingSet = preProcess();
 
     DataSet<ExpandRecord> iterationResults = iterate(initialWorkingSet);
 
-    System.out.println(postProcess(iterationResults).count());
+    return postProcess(iterationResults);
   }
 
 
@@ -37,7 +37,7 @@ public class ExpandWithExpandRecord {
 
   private DataSet<ExpandRecord> iterate(DataSet<ExpandRecord> initialWorkingSet) {
 
-    IterativeDataSet<ExpandRecord> iteration = initialWorkingSet.iterate(upperBound);
+    IterativeDataSet<ExpandRecord> iteration = initialWorkingSet.iterate(upperBound-1);
 
     DataSet<ExpandRecord> nextWorkingSet = iteration
       .filter(new FilterPreviousEmbedding())
@@ -61,25 +61,15 @@ public class ExpandWithExpandRecord {
   private class ExpandRecordKeySelector implements KeySelector<ExpandRecord, Long> {
     @Override
     public Long getKey(ExpandRecord value) throws Exception {
-      return value.getId(value.getSize() -1);
+      return value.getId(value.size() -1);
     }
   }
 
   private class FilterPreviousEmbedding extends RichFilterFunction<ExpandRecord> {
-    /**
-     * super step
-     */
-    private int currentIteration;
-
-    @Override
-    public void open(Configuration parameters) throws Exception {
-      super.open(parameters);
-      currentIteration = getIterationRuntimeContext().getSuperstepNumber() * 3;
-    }
-
     @Override
     public boolean filter(ExpandRecord embedding) {
-      return embedding.getSize() >= currentIteration;
+      int currentIteration = getIterationRuntimeContext().getSuperstepNumber() * 3;
+      return embedding.size() >= currentIteration;
     }
   }
 
@@ -92,7 +82,7 @@ public class ExpandWithExpandRecord {
 
     @Override
     public boolean filter(ExpandRecord embedding) {
-      return embedding.getSize() >= minSize;
+      return embedding.size() >= minSize;
     }
   }
 }

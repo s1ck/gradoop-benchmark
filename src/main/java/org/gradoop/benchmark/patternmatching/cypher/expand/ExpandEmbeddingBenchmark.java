@@ -20,6 +20,7 @@ package org.gradoop.benchmark.patternmatching.cypher.expand;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.gradoop.benchmark.patternmatching.cypher.join.embeddings.Embedding;
 
 @SuppressWarnings("ALL")
 public class ExpandEmbeddingBenchmark {
@@ -43,7 +44,10 @@ public class ExpandEmbeddingBenchmark {
       env.getConfig().enableObjectReuse();
     }
 
-    new ExpandWithEmbedding(readEdges(env, inputPath), lowerBound, upperBound).evaluate();
+    DataSet<Embedding> res =
+      new ExpandWithEmbedding(readEdges(env, inputPath), lowerBound, upperBound).evaluate();
+
+    res.count();
   }
 
   //------------------------------------------------------------------------------------------------

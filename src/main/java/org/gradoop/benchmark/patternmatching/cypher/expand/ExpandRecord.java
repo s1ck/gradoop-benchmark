@@ -1,13 +1,12 @@
 package org.gradoop.benchmark.patternmatching.cypher.expand;
 
-import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
-import org.apache.flink.shaded.org.objectweb.asm.tree.analysis.Value;
 import org.apache.flink.types.CopyableValue;
+import org.apache.flink.types.Value;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -42,7 +41,7 @@ public class ExpandRecord implements Value, CopyableValue<ExpandRecord>, Iterabl
     return new ExpandRecord(newPath);
   }
 
-  public int getSize() {
+  public int size() {
     return path.length / 8;
   }
 
@@ -67,7 +66,7 @@ public class ExpandRecord implements Value, CopyableValue<ExpandRecord>, Iterabl
 
   @Override
   public void copyTo(ExpandRecord target) {
-    if (target.path == null || target.path.length < this.path.length) {
+    if (target.path == null || target.path.length != this.path.length) {
       target.path = new byte[this.path.length];
     }
     System.arraycopy(this.path, 0, target.path, 0, this.path.length);
@@ -90,16 +89,15 @@ public class ExpandRecord implements Value, CopyableValue<ExpandRecord>, Iterabl
 
   @Override
   public void write(DataOutputView out) throws IOException {
-    out.write(Ints.toByteArray(this.path.length));
+    out.writeInt(this.path.length);
     out.write(this.path, 0, this.path.length);
   }
 
   @Override
   public void read(DataInputView in) throws IOException {
     final int length = in.readInt();
-
     byte[] buffer = this.path;
-    if (buffer == null || buffer.length < length) {
+    if (buffer == null || buffer.length != length) {
       buffer = new byte[length];
       this.path =  buffer;
     }
@@ -135,11 +133,13 @@ public class ExpandRecord implements Value, CopyableValue<ExpandRecord>, Iterabl
 
   @Override
   public String toString() {
-    String res = "[ ";
-    for (int i = 0; i<this.getSize(); i++) {
-      res += getId(i) + ", ";
+    StringBuilder builder = new StringBuilder();
+    builder.append("[");
+    for (int i = 0; i<this.size(); i++) {
+      builder.append(getId(i));
+      builder.append(",");
     }
-    res += "]";
-    return res;
+    builder.append("]");
+    return builder.toString();
   }
 }

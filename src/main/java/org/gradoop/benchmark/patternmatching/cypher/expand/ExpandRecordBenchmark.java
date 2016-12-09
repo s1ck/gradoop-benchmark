@@ -21,6 +21,8 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple3;
 
+import static java.util.stream.Collectors.joining;
+
 @SuppressWarnings("ALL")
 public class ExpandRecordBenchmark {
   /**
@@ -43,7 +45,10 @@ public class ExpandRecordBenchmark {
       env.getConfig().enableObjectReuse();
     }
 
-    new ExpandWithExpandRecord(readEdges(env, inputPath), lowerBound, upperBound).evaluate();
+    DataSet<ExpandRecord> res =
+      new ExpandWithExpandRecord(readEdges(env, inputPath), lowerBound, upperBound).evaluate();
+
+    res.count();
   }
 
   //------------------------------------------------------------------------------------------------

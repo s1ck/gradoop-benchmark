@@ -24,12 +24,12 @@ public class ExpandWithEmbedding {
   }
 
 
-  public void evaluate() throws Exception {
+  public DataSet<Embedding> evaluate() throws Exception {
     DataSet<Embedding> initialWorkingSet = preprocess();
 
     DataSet<Embedding> iterationResults = iterate(initialWorkingSet);
 
-    System.out.println(postProcess(iterationResults).count());
+    return postProcess(iterationResults);
   }
 
   private DataSet<Embedding> preprocess() {
@@ -42,7 +42,7 @@ public class ExpandWithEmbedding {
 
   private DataSet<Embedding> iterate(DataSet<Embedding> initialWorkingSet) {
 
-    IterativeDataSet<Embedding> iteration = initialWorkingSet.iterate(upperBound);
+    IterativeDataSet<Embedding> iteration = initialWorkingSet.iterate(upperBound-1);
 
     DataSet<Embedding> nextWorkingSet = iteration
       .filter(new FilterPreviousEmbedding())
