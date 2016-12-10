@@ -1,12 +1,14 @@
 package org.gradoop.benchmark.patternmatching.cypher.expand;
 
 import org.apache.flink.api.common.functions.RichFilterFunction;
+import org.apache.flink.api.common.functions.RichFlatJoinFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.operators.IterativeDataSet;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.hadoop.shaded.com.google.common.collect.Lists;
+import org.apache.flink.util.Collector;
 import org.gradoop.benchmark.patternmatching.cypher.join.embeddings.Embedding;
 import org.gradoop.benchmark.patternmatching.cypher.join.embeddings.IdEntry;
 
@@ -49,13 +51,7 @@ public class ExpandWithEmbedding {
       .join(candidateEdges)
         .where(new EmbeddingKeySelector())
         .equalTo(0)
-        .with((embedding, edge) -> {
-          Embedding newEmbedding = new Embedding(embedding.getEntries());
-          newEmbedding.add(new IdEntry(edge.f0));
-          newEmbedding.add(new IdEntry(edge.f1));
-          newEmbedding.add(new IdEntry(edge.f2));
-          return newEmbedding;
-        }).returns(Embedding.class);
+        .with(new JoinEmbeddings());
 
     DataSet<Embedding> solutionSet = nextWorkingSet.union(iteration);
 
@@ -67,6 +63,24 @@ public class ExpandWithEmbedding {
     return iterationResults.filter(new FilterLowerBound(lowerBound));
   }
 
+  private class JoinEmbeddings extends RichFlatJoinFunction<Embedding, Tuple3<Long, Long, Long>, Embedding> {
+    @Override
+    public void join(Embedding embedding, Tuple3<Long, Long, Long> edge,
+      Collector<Embedding> out) throws Exception {
+
+      for (int i = 1; i < embedding.size(); i+=3) {
+        if (embedding.get(i).getId() == edge.f1) {
+          return;
+        }
+      }
+
+      Embedding newEmbedding = new Embedding(embedding.copyEntries());
+      newEmbedding.add(new IdEntry(edge.f0));
+      newEmbedding.add(new IdEntry(edge.f1));
+      newEmbedding.add(new IdEntry(edge.f2));
+      out.collect(newEmbedding);
+    }
+  }
 
   private class EmbeddingKeySelector implements KeySelector<Embedding, Long> {
     @Override

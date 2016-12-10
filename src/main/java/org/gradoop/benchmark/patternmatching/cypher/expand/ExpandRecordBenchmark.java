@@ -21,7 +21,6 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple3;
 
-import static java.util.stream.Collectors.joining;
 
 @SuppressWarnings("ALL")
 public class ExpandRecordBenchmark {

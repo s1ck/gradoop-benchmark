@@ -41,6 +41,15 @@ public class ExpandRecord implements Value, CopyableValue<ExpandRecord>, Iterabl
     return new ExpandRecord(newPath);
   }
 
+  public boolean canExpand(Tuple3<Long, Long, Long> edge) {
+    for(int i=1; i < size(); i+= 3) {
+      if( getId(i) == edge.f1) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public int size() {
     return path.length / 8;
   }

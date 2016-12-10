@@ -1,11 +1,12 @@
 package org.gradoop.benchmark.patternmatching.cypher.expand;
 
 import org.apache.flink.api.common.functions.RichFilterFunction;
+import org.apache.flink.api.common.functions.RichFlatJoinFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.operators.IterativeDataSet;
 import org.apache.flink.api.java.tuple.Tuple3;
-import org.apache.flink.configuration.Configuration;
+import org.apache.flink.util.Collector;
 
 
 public class ExpandWithExpandRecord {
@@ -44,8 +45,7 @@ public class ExpandWithExpandRecord {
       .join(candidateEdges)
         .where(new ExpandRecordKeySelector())
         .equalTo(0)
-        .with((expandRecord, edge) -> expandRecord.expand(edge))
-        .returns(ExpandRecord.class);
+        .with(new JoinExpandRecords());
 
     DataSet<ExpandRecord> solutionSet = nextWorkingSet.union(iteration);
 
@@ -57,6 +57,19 @@ public class ExpandWithExpandRecord {
     return iterationResults.filter(new FilterLowerBound(lowerBound));
   }
 
+
+  private class JoinExpandRecords
+    extends RichFlatJoinFunction<ExpandRecord, Tuple3<Long, Long, Long>, ExpandRecord> {
+
+    @Override
+    public void join(ExpandRecord first, Tuple3<Long, Long, Long> second,
+      Collector<ExpandRecord> out) throws Exception {
+
+      if (first.canExpand(second)) {
+        out.collect(first.expand(second));
+      }
+    }
+  }
 
   private class ExpandRecordKeySelector implements KeySelector<ExpandRecord, Long> {
     @Override
