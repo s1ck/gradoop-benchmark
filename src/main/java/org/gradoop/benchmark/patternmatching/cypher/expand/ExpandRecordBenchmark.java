@@ -47,7 +47,7 @@ public class ExpandRecordBenchmark {
     DataSet<ExpandRecord> res =
       new ExpandWithExpandRecord(readEdges(env, inputPath), lowerBound, upperBound).evaluate();
 
-    res.count();
+    System.out.println(res.count());
   }
 
   //------------------------------------------------------------------------------------------------

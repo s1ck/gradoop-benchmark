@@ -20,7 +20,7 @@ package org.gradoop.benchmark.patternmatching.cypher.expand;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple3;
-import org.gradoop.benchmark.patternmatching.cypher.join.embeddings.Embedding;
+import org.gradoop.benchmark.patternmatching.cypher.expand.embeddings.Embedding;
 
 @SuppressWarnings("ALL")
 public class ExpandEmbeddingBenchmark {

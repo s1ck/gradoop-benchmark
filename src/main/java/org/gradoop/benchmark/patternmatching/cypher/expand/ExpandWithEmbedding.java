@@ -7,10 +7,10 @@ import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.operators.IterativeDataSet;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.hadoop.shaded.com.google.common.collect.Lists;
 import org.apache.flink.util.Collector;
-import org.gradoop.benchmark.patternmatching.cypher.join.embeddings.Embedding;
-import org.gradoop.benchmark.patternmatching.cypher.join.embeddings.IdEntry;
+import org.gradoop.benchmark.patternmatching.cypher.expand.embeddings.Embedding;
+import org.gradoop.benchmark.patternmatching.cypher.expand.embeddings.EmbeddingEntry;
+import org.gradoop.benchmark.patternmatching.cypher.expand.embeddings.IdEntry;
 
 
 public class ExpandWithEmbedding {
@@ -35,11 +35,15 @@ public class ExpandWithEmbedding {
   }
 
   private DataSet<Embedding> preprocess() {
-    return candidateEdges.map(edge -> new Embedding(Lists.newArrayList(
-      new IdEntry(edge.f0),
-      new IdEntry(edge.f1),
-      new IdEntry(edge.f2)
-    ))).returns(Embedding.class);
+
+    return candidateEdges.map(edge -> {
+      EmbeddingEntry[] list = new EmbeddingEntry[]{
+        new IdEntry(edge.f0),
+        new IdEntry(edge.f1),
+        new IdEntry(edge.f2)
+      };
+      return new Embedding(list);
+    }).returns(Embedding.class);
   }
 
   private DataSet<Embedding> iterate(DataSet<Embedding> initialWorkingSet) {
@@ -75,9 +79,7 @@ public class ExpandWithEmbedding {
       }
 
       Embedding newEmbedding = new Embedding(embedding.copyEntries());
-      newEmbedding.add(new IdEntry(edge.f0));
-      newEmbedding.add(new IdEntry(edge.f1));
-      newEmbedding.add(new IdEntry(edge.f2));
+      newEmbedding.add(edge);
       out.collect(newEmbedding);
     }
   }
