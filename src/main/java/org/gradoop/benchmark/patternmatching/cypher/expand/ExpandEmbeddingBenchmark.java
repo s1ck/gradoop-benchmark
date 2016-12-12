@@ -47,7 +47,7 @@ public class ExpandEmbeddingBenchmark {
     DataSet<Embedding> res =
       new ExpandWithEmbedding(readEdges(env, inputPath), lowerBound, upperBound).evaluate();
 
-    System.out.println(res.collect());
+    System.out.println(res.count());
   }
 
   //------------------------------------------------------------------------------------------------
