@@ -33,8 +33,7 @@ import org.apache.flink.api.java.tuple.Tuple6;
 import org.apache.flink.api.java.tuple.Tuple7;
 import org.apache.flink.api.java.tuple.Tuple8;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
-import org.apache.flink.api.java.typeutils.TypeExtractor;
-import org.gradoop.benchmark.gradoopid.GradoopIdTuple4;
+import org.gradoop.benchmark.gradoopid.GradoopIdByteArrayCopyable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -121,7 +120,7 @@ public class TupleBenchmark {
     if (idType.equals("long")) {
       performQuery(readBasicTypeEdges(inputPath, Long.class, env), query, BasicTypeInfo.LONG_TYPE_INFO);
     } else if (idType.equals("gradoopid")) {
-      performQuery(readGradoopIdTupleEdges(inputPath, env), query, TupleTypeInfo.of(GradoopIdTuple4.class));
+      performQuery(readGradoopIdTupleEdges(inputPath, env), query, TupleTypeInfo.of(GradoopIdByteArrayCopyable.class));
     }
   }
 
@@ -149,17 +148,17 @@ public class TupleBenchmark {
       .types(keyClazz, keyClazz, keyClazz);
   }
 
-  private static DataSet<Tuple3<GradoopIdTuple4, GradoopIdTuple4, GradoopIdTuple4>> readGradoopIdTupleEdges(String inputPath, ExecutionEnvironment env) {
+  private static DataSet<Tuple3<GradoopIdByteArrayCopyable, GradoopIdByteArrayCopyable, GradoopIdByteArrayCopyable>> readGradoopIdTupleEdges(String inputPath, ExecutionEnvironment env) {
 
     return env.readTextFile(inputPath)
-      .map(new MapFunction<String, Tuple3<GradoopIdTuple4, GradoopIdTuple4, GradoopIdTuple4>>() {
+      .map(new MapFunction<String, Tuple3<GradoopIdByteArrayCopyable, GradoopIdByteArrayCopyable, GradoopIdByteArrayCopyable>>() {
         @Override
-        public Tuple3<GradoopIdTuple4, GradoopIdTuple4, GradoopIdTuple4> map(String line) throws
+        public Tuple3<GradoopIdByteArrayCopyable, GradoopIdByteArrayCopyable, GradoopIdByteArrayCopyable> map(String line) throws
           Exception {
           String[] tokens = line.split("\t");
           return Tuple3
-            .of(GradoopIdTuple4.fromString(tokens[0]), GradoopIdTuple4.fromString(tokens[1]),
-              GradoopIdTuple4
+            .of(GradoopIdByteArrayCopyable.fromString(tokens[0]), GradoopIdByteArrayCopyable.fromString(tokens[1]),
+              GradoopIdByteArrayCopyable
 
                 .fromString(tokens[2]));
         }

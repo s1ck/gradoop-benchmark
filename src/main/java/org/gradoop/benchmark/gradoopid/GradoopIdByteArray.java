@@ -6,6 +6,7 @@ import org.apache.flink.core.memory.MemorySegment;
 import org.apache.flink.types.NormalizableKey;
 import org.apache.hadoop.io.WritableComparable;
 import org.bson.types.ObjectId;
+import org.gradoop.common.model.impl.id.GradoopId;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -26,12 +27,17 @@ public class GradoopIdByteArray implements
     this.bytes = bytes;
   }
 
-  public static GradoopIdByteArray get() {
-    return new GradoopIdByteArray(new ObjectId().toByteArray());
-  }
-
   public static GradoopIdByteArray fromString(String s) {
-    return new GradoopIdByteArray(new ObjectId(s).toByteArray());
+    if (!ObjectId.isValid(s)) {
+      throw new IllegalArgumentException(
+        "invalid hexadecimal representation of a GradoopId: [" + s + "]");
+    }
+
+    byte[] b = new byte[12];
+    for (int i = 0; i < b.length; i++) {
+      b[i] = (byte) Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16);
+    }
+    return new GradoopIdByteArray(b);
   }
 
   @Override

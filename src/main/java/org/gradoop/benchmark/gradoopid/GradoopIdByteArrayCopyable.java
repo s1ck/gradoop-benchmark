@@ -28,12 +28,17 @@ public class GradoopIdByteArrayCopyable implements
     this.bytes = bytes;
   }
 
-  public static GradoopIdByteArrayCopyable get() {
-    return new GradoopIdByteArrayCopyable(new ObjectId().toByteArray());
-  }
-
   public static GradoopIdByteArrayCopyable fromString(String s) {
-    return new GradoopIdByteArrayCopyable(new ObjectId(s).toByteArray());
+    if (!ObjectId.isValid(s)) {
+      throw new IllegalArgumentException(
+        "invalid hexadecimal representation of a GradoopId: [" + s + "]");
+    }
+
+    byte[] b = new byte[12];
+    for (int i = 0; i < b.length; i++) {
+      b[i] = (byte) Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16);
+    }
+    return new GradoopIdByteArrayCopyable(b);
   }
 
   @Override
