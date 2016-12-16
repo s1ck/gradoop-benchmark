@@ -5,18 +5,14 @@ import org.apache.flink.core.memory.DataOutputView;
 import org.apache.flink.core.memory.MemorySegment;
 import org.apache.flink.types.CopyableValue;
 import org.apache.flink.types.NormalizableKey;
-import org.apache.hadoop.io.WritableComparable;
 import org.bson.types.ObjectId;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 
 /**
  * Wraps a byte array representing a BSON {@link ObjectId}.
  */
 public class GradoopIdByteArrayCopyable implements
-  WritableComparable<GradoopIdByteArrayCopyable>,
   NormalizableKey<GradoopIdByteArrayCopyable>,
   CopyableValue<GradoopIdByteArrayCopyable> {
 
@@ -52,19 +48,33 @@ public class GradoopIdByteArrayCopyable implements
 
     GradoopIdByteArrayCopyable other = (GradoopIdByteArrayCopyable) o;
 
-    if (getCounter() != other.getCounter()) {
+    // compare counter (byte 9 to 11)
+    if (!equalsInRange(bytes, other.bytes, 9, 11)) {
       return false;
     }
-    if (getMachineIdentifier() != other.getMachineIdentifier()) {
+    // compare machine identifier (byte 4 to 6)
+    if (!equalsInRange(bytes, other.bytes, 4, 6)) {
       return false;
     }
-    if (getProcessIdentifier() != other.getProcessIdentifier()) {
+    // compare process identifier (byte 7 to 8)
+    if (!equalsInRange(bytes, other.bytes, 7, 8)) {
       return false;
     }
-    if (getTimeStamp() != other.getTimeStamp()) {
+    // compare timestamp (byte 0 to 3)
+    if (!equalsInRange(bytes, other.bytes, 0, 3)) {
       return false;
     }
 
+    return true;
+  }
+
+  private boolean equalsInRange (byte[] f1, byte[] f2, int from, int to) {
+    while (from <= to) {
+      if (f1[from] != f2[from]) {
+        return false;
+      }
+      ++from;
+    }
     return true;
   }
 
@@ -79,7 +89,7 @@ public class GradoopIdByteArrayCopyable implements
 
   @Override
   public int getMaxNormalizedKeyLen() {
-    return 0;
+    return 12;
   }
 
   @Override
@@ -110,16 +120,6 @@ public class GradoopIdByteArrayCopyable implements
   @Override
   public void read(DataInputView in) throws IOException {
     in.readFully(bytes);
-  }
-
-  @Override
-  public void write(DataOutput dataOutput) throws IOException {
-    dataOutput.write(bytes);
-  }
-
-  @Override
-  public void readFields(DataInput dataInput) throws IOException {
-    dataInput.readFully(bytes);
   }
 
   private int getTimeStamp() {

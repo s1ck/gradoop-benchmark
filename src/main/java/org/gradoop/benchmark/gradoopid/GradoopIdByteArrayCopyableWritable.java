@@ -3,10 +3,10 @@ package org.gradoop.benchmark.gradoopid;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
 import org.apache.flink.core.memory.MemorySegment;
+import org.apache.flink.types.CopyableValue;
 import org.apache.flink.types.NormalizableKey;
 import org.apache.hadoop.io.WritableComparable;
 import org.bson.types.ObjectId;
-import org.gradoop.common.model.impl.id.GradoopId;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -15,19 +15,20 @@ import java.io.IOException;
 /**
  * Wraps a byte array representing a BSON {@link ObjectId}.
  */
-public class GradoopIdByteArray implements
-  WritableComparable<GradoopIdByteArray>,
-  NormalizableKey<GradoopIdByteArray> {
+public class GradoopIdByteArrayCopyableWritable implements
+  WritableComparable<GradoopIdByteArrayCopyableWritable>,
+  NormalizableKey<GradoopIdByteArrayCopyableWritable>,
+  CopyableValue<GradoopIdByteArrayCopyableWritable> {
 
   private byte[] bytes = new byte[12];
 
-  public GradoopIdByteArray() {}
+  public GradoopIdByteArrayCopyableWritable() {}
 
-  private GradoopIdByteArray(byte[] bytes) {
+  private GradoopIdByteArrayCopyableWritable(byte[] bytes) {
     this.bytes = bytes;
   }
 
-  public static GradoopIdByteArray fromString(String s) {
+  public static GradoopIdByteArrayCopyableWritable fromString(String s) {
     if (!ObjectId.isValid(s)) {
       throw new IllegalArgumentException(
         "invalid hexadecimal representation of a GradoopId: [" + s + "]");
@@ -37,7 +38,7 @@ public class GradoopIdByteArray implements
     for (int i = 0; i < b.length; i++) {
       b[i] = (byte) Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16);
     }
-    return new GradoopIdByteArray(b);
+    return new GradoopIdByteArrayCopyableWritable(b);
   }
 
   @Override
@@ -49,21 +50,35 @@ public class GradoopIdByteArray implements
       return false;
     }
 
-    GradoopIdByteArray other = (GradoopIdByteArray) o;
+    GradoopIdByteArrayCopyableWritable other = (GradoopIdByteArrayCopyableWritable) o;
 
-    if (getCounter() != other.getCounter()) {
+    // compare counter (byte 9 to 11)
+    if (!equalsInRange(bytes, other.bytes, 9, 11)) {
       return false;
     }
-    if (getMachineIdentifier() != other.getMachineIdentifier()) {
+    // compare machine identifier (byte 4 to 6)
+    if (!equalsInRange(bytes, other.bytes, 4, 6)) {
       return false;
     }
-    if (getProcessIdentifier() != other.getProcessIdentifier()) {
+    // compare process identifier (byte 7 to 8)
+    if (!equalsInRange(bytes, other.bytes, 7, 8)) {
       return false;
     }
-    if (getTimeStamp() != other.getTimeStamp()) {
+    // compare timestamp (byte 0 to 3)
+    if (!equalsInRange(bytes, other.bytes, 0, 3)) {
       return false;
     }
 
+    return true;
+  }
+
+  private boolean equalsInRange (byte[] f1, byte[] f2, int from, int to) {
+    while (from <= to) {
+      if (f1[from] != f2[from]) {
+        return false;
+      }
+      ++from;
+    }
     return true;
   }
 
@@ -87,7 +102,7 @@ public class GradoopIdByteArray implements
   }
 
   @Override
-  public int compareTo(GradoopIdByteArray o) {
+  public int compareTo(GradoopIdByteArrayCopyableWritable o) {
     if (o == null) {
       throw new NullPointerException();
     }
@@ -142,5 +157,25 @@ public class GradoopIdByteArray implements
       ((b2 & 0xff) << 16) |
       ((b1 & 0xff) << 8) |
       ((b0 & 0xff)));
+  }
+
+  @Override
+  public int getBinaryLength() {
+    return 12;
+  }
+
+  @Override
+  public void copyTo(GradoopIdByteArrayCopyableWritable target) {
+    target.bytes = this.bytes;
+  }
+
+  @Override
+  public GradoopIdByteArrayCopyableWritable copy() {
+    return new GradoopIdByteArrayCopyableWritable(bytes);
+  }
+
+  @Override
+  public void copy(DataInputView source, DataOutputView target) throws IOException {
+    target.write(source, 12);
   }
 }
